@@ -15,7 +15,7 @@ For those looking to learn Vulkan.
 
 ## Running
 
-1. `cmake -B./build -S./`
+1. `..\vulkan_minimal_compute> cmake -B./build -S./`
 2. Open solution
 3. Right click `vulkan_minimal_compute` project, `Set as Startup Project`
 4. Run
