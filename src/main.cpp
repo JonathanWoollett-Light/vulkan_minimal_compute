@@ -151,10 +151,10 @@ public:
             VkApplicationInfo applicationInfo = {};
             {
                 applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-                applicationInfo.pApplicationName = "Hello world app";
-                applicationInfo.applicationVersion = 0;
-                applicationInfo.pEngineName = "awesomeengine";
-                applicationInfo.engineVersion = 0;
+                applicationInfo.pApplicationName = "some app name"; // Optional
+                applicationInfo.applicationVersion = 0; // Optional
+                applicationInfo.pEngineName = "some engine name";// Optional
+                applicationInfo.engineVersion = 0; // Optional
                 applicationInfo.apiVersion = VK_API_VERSION_1_0;
             }
             createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
