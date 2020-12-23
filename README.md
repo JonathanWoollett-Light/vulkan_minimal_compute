@@ -10,7 +10,7 @@ Specifically a compute shader to render the mandelbrot set.
 
 For those looking to learn Vulkan.
 
-### Running
+### How?
 
 1. `..\vulkan_minimal_compute> cmake -B./build -S./`
 2. Open solution
