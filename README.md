@@ -18,4 +18,15 @@ For those looking to learn Vulkan.
 4. Run
 5. See `..\vulkan_minimal_compute\mandelbrot.png` got created
 
+### What's different about this fork?
+
+- Comments condensed
+- Validation layers removed
+- Bunch of stuff scoped
+
+Overall, it's smaller and simpler, what imho a minimal example shuld be.
+
+### Look at this cool image
+
 ![](image.png)
+
