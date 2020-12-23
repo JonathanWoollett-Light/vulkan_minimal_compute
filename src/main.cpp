@@ -39,7 +39,6 @@ private:
     // In order to use Vulkan, you must create an instance.
     VkInstance instance;
 
-    
     // The physical device is some device on the system that supports usage of Vulkan,
     //  typically a graphics card.
     VkPhysicalDevice physicalDevice;
@@ -145,10 +144,8 @@ public:
     // Initiates Vulkan instance
     void createInstance() {
         
-        /*
-        Contains application info. This is actually not that important.
-        The only real important field is apiVersion.
-        */
+        // Vulkan istance options.
+        // `apiVersion` will likely be all that matters here.
         VkInstanceCreateInfo createInfo = {};
         {
             VkApplicationInfo applicationInfo = {};
