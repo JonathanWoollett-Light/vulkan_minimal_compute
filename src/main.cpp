@@ -36,79 +36,45 @@ private:
         float r, g, b, a;
     };
     
-    /*
-    In order to use Vulkan, you must create an instance. 
-    */
+    // In order to use Vulkan, you must create an instance.
     VkInstance instance;
 
-    /*
-    The physical device is some device on the system that supports usage of Vulkan.
-    Often, it is simply a graphics card that supports Vulkan. 
-    */
+    
+    // The physical device is some device on the system that supports usage of Vulkan,
+    //  typically a graphics card.
     VkPhysicalDevice physicalDevice;
-    /*
-    Then we have the logical device VkDevice, which basically allows 
-    us to interact with the physical device. 
-    */
+
+
+    // The logical device (`VkDevice`), is our connection to the physical device.
     VkDevice device;
 
-    /*
-    The pipeline specifies the pipeline that all graphics and compute commands pass though in Vulkan.
-
-    We will be creating a simple compute pipeline in this application. 
-    */
+    // Pipeline contains sequence of shaders, for compute only 1 compute shader.
     VkPipeline pipeline;
     VkPipelineLayout pipelineLayout;
     VkShaderModule computeShaderModule;
 
-    /*
-    The command buffer is used to record commands, that will be submitted to a queue.
-
-    To allocate such command buffers, we use a command pool.
-    */
+    // A command buffer encapsulates a pipeline.
+    // A command buffer submits a pipeline to the physical device.
     VkCommandPool commandPool;
     VkCommandBuffer commandBuffer;
 
-    /*
-
-    Descriptors represent resources in shaders. They allow us to use things like
-    uniform buffers, storage buffers and images in GLSL. 
-
-    A single descriptor represents a single resource, and several descriptors are organized
-    into descriptor sets, which are basically just collections of descriptors.
-    */
+    // Descriptors define buffers and images (arrays and 2d arrays)
     VkDescriptorPool descriptorPool;
     VkDescriptorSet descriptorSet;
     VkDescriptorSetLayout descriptorSetLayout;
 
-    /*
-    The mandelbrot set will be rendered to this buffer.
-
-    The memory that backs the buffer is bufferMemory. 
-    */
+    // The mandelbrot set will be rendered to this buffer.
+    // `buffer` encapsulates `bufferMemory`.
+    // `buffer` is an object, `bufferMemory` an array.
     VkBuffer buffer;
     VkDeviceMemory bufferMemory;
         
     uint32_t bufferSize; // size of `buffer` in bytes.
 
-    /*
-    In order to execute commands on a device(GPU), the commands must be submitted
-    to a queue. The commands are stored in a command buffer, and this command buffer
-    is given to the queue. 
+    // Command buffers are submitted to a queue.
+    VkQueue queue;
 
-    There will be different kinds of queues on the device. Not all queues support
-    graphics operations, for instance. For this application, we at least want a queue
-    that supports compute operations. 
-    */
-    VkQueue queue; // a queue supporting compute operations.
-
-    /*
-    Groups of queues that have the same capabilities(for instance, they all supports graphics and computer operations),
-    are grouped into queue families. 
-    
-    When submitting a command buffer, you must specify to which queue in the family you are submitting to. 
-    This variable keeps track of the index of that queue in its family. 
-    */
+    // Queues are grouped by capabilities, command buffers must be submited to a given queue in a given queue family.
     uint32_t queueFamilyIndex;
 
 public:
