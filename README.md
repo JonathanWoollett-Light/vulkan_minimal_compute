@@ -4,8 +4,9 @@
 
 An ultra simple demo of compute with Vulkan.
 
-A compute shader to render the mandelbrot set, rendering it into a storage buffer.
-The storage buffer is then read from the GPU, and saved as `.png`.
+A compute shader to render the mandelbrot set.
+
+Storage buffer -> `.png`
 
 ## Who?
 
