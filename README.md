@@ -6,8 +6,6 @@ An ultra simple demo of compute with Vulkan.
 
 A compute shader to render the mandelbrot set.
 
-Storage buffer -> `.png`
-
 ## Who?
 
 For those looking to learn Vulkan.
