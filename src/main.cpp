@@ -41,7 +41,6 @@ private:
     */
     VkInstance instance;
 
-    VkDebugReportCallbackEXT debugReportCallback;
     /*
     The physical device is some device on the system that supports usage of Vulkan.
     Often, it is simply a graphics card that supports Vulkan. 
