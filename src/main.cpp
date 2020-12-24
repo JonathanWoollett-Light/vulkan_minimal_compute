@@ -226,7 +226,7 @@ public:
             VkPhysicalDeviceFeatures deviceFeatures = {};
 
             deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-            // When creating the logical device, we specify what queuess it accesses.
+            // When creating the logical device, we specify what queues it accesses.
             deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
             deviceCreateInfo.queueCreateInfoCount = 1;
             deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
@@ -257,11 +257,7 @@ public:
     }
 
     void createBuffer() {
-        /*
-        We will now create a buffer. We will render the mandelbrot set into this buffer
-        in a computer shade later. 
-        */
-        
+        // Buffer info
         VkBufferCreateInfo bufferCreateInfo = {};
         {
             bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -270,41 +266,33 @@ public:
             bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // buffer is exclusive to a single queue family at a time. 
         }
         
+        // Constructs buffer
+        VK_CHECK_RESULT(vkCreateBuffer(device, &bufferCreateInfo, NULL, &buffer));
 
-        VK_CHECK_RESULT(vkCreateBuffer(device, &bufferCreateInfo, NULL, &buffer)); // create buffer.
+        // Buffers do not allocate memory upon construction, we must do it manually
 
-        /*
-        But the buffer doesn't allocate memory for itself, so we must do that manually.
-        */
-    
-        /*
-        First, we find the memory requirements for the buffer.
-        */
+        // Gets buffer memory info
         VkMemoryRequirements memoryRequirements;
         vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
         
-        /*
-        Now use obtained memory requirements info to allocate the memory for the buffer.
-        */
+        // Sets buffer options
         VkMemoryAllocateInfo allocateInfo = {};
         allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocateInfo.allocationSize = memoryRequirements.size; // specify required memory.
-        /*
-        There are several types of memory that can be allocated, and we must choose a memory type that:
+        allocateInfo.allocationSize = memoryRequirements.size; // Bytes
 
-        1) Satisfies the memory requirements(memoryRequirements.memoryTypeBits). 
-        2) Satifies our own usage requirements. We want to be able to read the buffer memory from the GPU to the CPU
-           with vkMapMemory, so we set VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT. 
-        Also, by setting VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, memory written by the device(GPU) will be easily 
-        visible to the host(CPU), without having to call any extra flushing commands. So mainly for convenience, we set
-        this flag.
-        */
         allocateInfo.memoryTypeIndex = findMemoryType(
-            memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+            // Sets memory must supports all the operations our buffer memory supports
+            memoryRequirements.memoryTypeBits,
+            // Sets memory must have the properties:
+            //  `VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` Can more easily view
+            //  `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` Can read from GPU to CPU
+            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+        );
 
-        VK_CHECK_RESULT(vkAllocateMemory(device, &allocateInfo, NULL, &bufferMemory)); // allocate memory on device.
+        // Allocates memory
+        VK_CHECK_RESULT(vkAllocateMemory(device, &allocateInfo, NULL, &bufferMemory));
         
-        // Now associate that allocated memory with the buffer. With that, the buffer is backed by actual memory. 
+        // Binds buffer to allocated memory
         VK_CHECK_RESULT(vkBindBufferMemory(device, buffer, bufferMemory, 0));
     }
 
@@ -328,8 +316,8 @@ public:
             }
 
             descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-            descriptorSetLayoutCreateInfo.bindingCount = 1; // 1 descriptor/bindings in this descriptor set
-            descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding;
+            descriptorSetLayoutCreateInfo.bindingCount = 1; // 1 `VkDescriptorSetLayoutBinding` in this descriptor set
+            descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding; // Pointer to array of `VkDescriptorSetLayoutBinding`s
         }
         
         // Create the descriptor set layout. 
@@ -376,9 +364,10 @@ public:
         We use vkUpdateDescriptorSets() to update the descriptor set.
         */
 
+        // Binds descriptors from our descriptor sets to our buffers
         VkWriteDescriptorSet writeDescriptorSet = {};
         {
-            // Specify the buffer to bind to the descriptor.
+            // Binds descriptor to buffer
             VkDescriptorBufferInfo descriptorBufferInfo = {};
             {
                 descriptorBufferInfo.buffer = buffer;
@@ -387,10 +376,13 @@ public:
             }
             writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             writeDescriptorSet.dstSet = descriptorSet; // write to this descriptor set.
-            writeDescriptorSet.dstBinding = 0; // write to the first, and only binding.
+            // TODO Wtf does this do?
+            //  My best guess is that descriptor sets can have multile bindings to different sets of buffers.
+            //  original comment said 'write to the first, and only binding.'
+            writeDescriptorSet.dstBinding = 0;
             writeDescriptorSet.descriptorCount = 1; // update a single descriptor.
             writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; // storage buffer.
-            writeDescriptorSet.pBufferInfo = &descriptorBufferInfo;
+            writeDescriptorSet.pBufferInfo = &descriptorBufferInfo; // pointer to array of descriptor bindings
         }
         
 
@@ -433,16 +425,15 @@ public:
         // Creates shader module (just a wrapper around our shader)
         VkShaderModuleCreateInfo createInfo = {};
         {
-            uint32_t filelength;
             //uint32_t* code = readFile(filelength, "shaders/comp.spv");
             createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+            uint32_t filelength;
             createInfo.pCode = readFile(filelength, "shaders/comp.spv");
             createInfo.codeSize = filelength;
             //delete[] code;
         }
 
         VK_CHECK_RESULT(vkCreateShaderModule(device, &createInfo, NULL, &computeShaderModule));
-        
 
         // A compute pipeline is very simple compared to a graphics pipeline.
         // It only consists of a single stage with a compute shader.
@@ -482,73 +473,74 @@ public:
             1, &pipelineCreateInfo,
             NULL, &pipeline));
     }
-
+    // Creates command buffer
+    // Command buffers send commands to our physical device
     void createCommandBuffer() {
-        /*
-        We are getting closer to the end. In order to send commands to the device(GPU),
-        we must first record commands into a command buffer.
-        To allocate a command buffer, we must first create a command pool. So let us do that.
-        */
+        // Command buffers must be created via a command pool
         VkCommandPoolCreateInfo commandPoolCreateInfo = {};
         {
             commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+            // Bit in-depth, would recommend ignoring for now
             commandPoolCreateInfo.flags = 0;
-            // the queue family of this command pool. All command buffers allocated from this command pool,
-            // must be submitted to queues of this family ONLY. 
+             // Queue family this command pool belongs to
             commandPoolCreateInfo.queueFamilyIndex = queueFamilyIndex;
         }
         VK_CHECK_RESULT(vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &commandPool));
 
-        /*
-        Now allocate a command buffer from the command pool. 
-        */
+        // Allocates command buffer from command pool
         VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
         {
             commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-            commandBufferAllocateInfo.commandPool = commandPool; // specify the command pool to allocate from. 
-            // if the command buffer is primary, it can be directly submitted to queues. 
-            // A secondary buffer has to be called from some primary command buffer, and cannot be directly 
-            // submitted to a queue. To keep things simple, we use a primary command buffer. 
+            // Pool to allocate from
+            commandBufferAllocateInfo.commandPool = commandPool;
+            // Primary command buffers are submitted directly,
+            //  secondary command buffers are submited via primary command buffers.
+            // A primary command buffer is what we need here.
             commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            commandBufferAllocateInfo.commandBufferCount = 1; // allocate a single command buffer. 
+            // Allocates 1 command buffer. 
+            commandBufferAllocateInfo.commandBufferCount = 1; 
         }
         VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer)); // allocate command buffer.
 
-        /*
-        Now we shall start recording commands into the newly allocated command buffer. 
-        */
+        // Allocated command buffer options
         VkCommandBufferBeginInfo beginInfo = {};
         {
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            // Buffer only submitted once in application
+            // Buffer only submitted once
             beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
         }
-        VK_CHECK_RESULT(vkBeginCommandBuffer(commandBuffer, &beginInfo)); // start recording commands.
+        // Start recording commands
+        VK_CHECK_RESULT(vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
-        /*
-        We need to bind a pipeline, AND a descriptor set before we dispatch.
-
-        The validation layer will NOT give warnings if you forget these, so be very careful not to forget them.
-        */
+        // Binds pipeline (our functions) and descriptor set (our data)
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSet, 0, NULL);
 
-        /*
-        Calling vkCmdDispatch basically starts the compute pipeline, and executes the compute shader.
-        The number of workgroups is specified in the arguments.
-        If you are already familiar with compute shaders from OpenGL, this should be nothing new to you.
-        */
-        vkCmdDispatch(commandBuffer, (uint32_t)ceil(WIDTH / float(WORKGROUP_SIZE)), (uint32_t)ceil(HEIGHT / float(WORKGROUP_SIZE)), 1);
+        // Sets invocations
+        //
+        // Each workgroup is some x number of invocations, we need y number of invocations,
+        //  so we need to invoke some z number of workgroups such that z*x > y thus we do z = ceil(y/x).
+        // We invoke some number of workgroups along each dimension.
+        vkCmdDispatch(
+            commandBuffer,
+            (uint32_t) ceil(WIDTH / (float) WORKGROUP_SIZE),
+            (uint32_t) ceil(HEIGHT / (float) WORKGROUP_SIZE),
+            1
+        );
 
-        VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer)); // end recording commands.
+        // End recording commands
+        VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
     }
-    // Submits command buffer to queue
+    
+    // Submits command buffer to queue for execution
     void runCommandBuffer() {
         VkSubmitInfo submitInfo = {};
         {
             submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            submitInfo.commandBufferCount = 1; // submit a single command buffer
-            submitInfo.pCommandBuffers = &commandBuffer; // pointer to array of command buffers to submit.
+            // submit 1 command buffer
+            submitInfo.commandBufferCount = 1;
+             // pointer to array of command buffers to submit
+            submitInfo.pCommandBuffers = &commandBuffer;
         }
 
         // Creates fence (so we can await for command buffer to finish)
