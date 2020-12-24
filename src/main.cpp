@@ -153,20 +153,16 @@ public:
                 applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
                 applicationInfo.pApplicationName = "some app name"; // Optional
                 applicationInfo.applicationVersion = 0; // Optional
-                applicationInfo.pEngineName = "some engine name";// Optional
+                applicationInfo.pEngineName = "some engine name"; // Optional
                 applicationInfo.engineVersion = 0; // Optional
                 applicationInfo.apiVersion = VK_API_VERSION_1_0;
             }
             createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-            createInfo.flags = 0;
+            createInfo.flags = 0; // Optional
             createInfo.pApplicationInfo = &applicationInfo;
         }
-        
     
-        /*
-        Actually create the instance.
-        Having created the instance, we can actually start using vulkan.
-        */
+        // Creates instance
         VK_CHECK_RESULT(vkCreateInstance(
             &createInfo,
             NULL,
@@ -179,7 +175,7 @@ public:
         uint32_t deviceCount;
         vkEnumeratePhysicalDevices(instance, &deviceCount, NULL);
         if (deviceCount == 0) {
-            throw std::runtime_error("could not find a device with vulkan support");
+            throw std::runtime_error("No Vulkan compatible devices");
         }
 
         // Gets physical devices
@@ -190,7 +186,7 @@ public:
         physicalDevice = devices[0];
     }
 
-    // Returns the index of a queue family that supports compute operations. 
+    // Returns an index of a queue family that supports compute
     uint32_t getComputeQueueFamilyIndex() {
         // Gets number of queue families
         uint32_t queueFamilyCount;
@@ -203,15 +199,15 @@ public:
         // Picks 1st queue family which supports compute
         for (uint32_t i = 0; i < queueFamilies.size(); ++i) {
             VkQueueFamilyProperties props = queueFamilies[i];
-            // If queue family contains some queues and supports compute
-            // TODO Do we really need to check it contains >0 queues? why would their be a family family with no queues?
-            if (props.queueCount > 0 && (props.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
+            // If queue family supports compute
+            // `props.queueCount > 0` removed, since it seems rather pointless
+            if (props.queueFlags & VK_QUEUE_COMPUTE_BIT) {
                 return i;
             }
         }
-        throw std::runtime_error("could not find a queue family that supports operations");
+        throw std::runtime_error("No compute queue family");
     }
-    // Gets our device
+    // Gets logical device
     void createDevice() {
         // Device info
         VkDeviceCreateInfo deviceCreateInfo = {};
@@ -223,22 +219,22 @@ public:
                 queueFamilyIndex = getComputeQueueFamilyIndex(); // find queue family with compute capability.
                 queueCreateInfo.queueFamilyIndex = queueFamilyIndex;
                 queueCreateInfo.queueCount = 1; // create one queue in this family. We don't need more.
-                float queuePriorities = 1.0;  // we only have one queue, so this is not that imporant. 
-                queueCreateInfo.pQueuePriorities = &queuePriorities;
+                // `pQueuePriorities` relates to a more in-depth topic, look it up if you want, but probably best ignore it for now
+                queueCreateInfo.pQueuePriorities = new float(1.0);
             }
             // Device features
             VkPhysicalDeviceFeatures deviceFeatures = {};
 
             deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-            deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo; // when creating the logical device, we specify what queues it has.
+            // When creating the logical device, we specify what queuess it accesses.
+            deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
             deviceCreateInfo.queueCreateInfoCount = 1;
             deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
         }
-        
 
         VK_CHECK_RESULT(vkCreateDevice(physicalDevice, &deviceCreateInfo, NULL, &device)); // create logical device.
 
-        // Get a handle to the only member of the queue family.
+        // Get handle to queue 0 in `queueFamilyIndex` queue family
         vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
     }
 
