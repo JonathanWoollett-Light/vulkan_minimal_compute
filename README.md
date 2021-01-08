@@ -1,3 +1,5 @@
+## ⚠️ Impending signficant update (when I can be bothered... next couple weeks)
+
 # Vulkan minimal compute
 
 ### What?
