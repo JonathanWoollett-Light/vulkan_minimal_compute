@@ -1,4 +1,4 @@
-## ⚠️ Impending significant update (when I can be bothered... next couple weeks)
+## ⚠️ Impending significant update (when I can be bothered and ain't so busy... next couple weeks)
 
 # Vulkan minimal compute
 
